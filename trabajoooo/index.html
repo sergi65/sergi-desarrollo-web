@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador Interactivo de Fast Prompting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A single-page, vertical scrolling application with a sticky navigation bar. Each of the four prompting techniques (Zero-Shot, Few-Shot, CoT, Delimiters) has its own dedicated, interactive section. This thematic structure allows users to easily compare techniques and understand their specific applications, which is more effective for learning than a simple linear report. The interactivity in each section provides a hands-on experience, reinforcing the concepts. -->
+    <!-- Visualization & Content Choices:
+    - Report Info: Explanation of each prompting technique. Goal: Inform & Organize. Viz/Presentation: Interactive HTML forms (textarea, buttons) and text blocks (`pre`, `p`). Interaction: User input triggers dynamic generation of a structured prompt and a simulated response. Justification: This direct interaction is the most effective way to demonstrate how prompts are constructed and how they influence output, which is the core concept of the source material. Library/Method: Vanilla JavaScript for DOM manipulation.
+    - Report Info: Comparison of techniques. Goal: Compare. Viz/Presentation: A summary section with clear headings and bullet points. Interaction: Static content for easy reading. Justification: A simple text summary is sufficient to consolidate the learnings from the interactive sections. Library/Method: HTML/Tailwind.
+    - CONFIRMATION: NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfaf6;
+            color: #4a4a4a;
+        }
+        .prompt-display {
+            background-color: #f1f1f1;
+            border-left: 4px solid #d1a36a;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .response-display {
+            background-color: #e8f3e8;
+            border-left: 4px solid #6aa5d1;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .interactive-card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .interactive-card:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="app" class="flex flex-col min-h-screen">
+        <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-[#4a4a4a]">Fast Prompting POC</h1>
+                <ul class="flex space-x-4 md:space-x-8 text-sm md:text-base">
+                    <li><a href="#zero-shot" class="text-gray-600 hover:text-[#d1a36a] transition">Zero-Shot</a></li>
+                    <li><a href="#few-shot" class="text-gray-600 hover:text-[#d1a36a] transition">Few-Shot</a></li>
+                    <li><a href="#cot" class="text-gray-600 hover:text-[#d1a36a] transition">CoT</a></li>
+                    <li><a href="#delimiters" class="text-gray-600 hover:text-[#d1a36a] transition">Delimitadores</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="container mx-auto px-6 py-12 flex-grow">
+            <section id="intro" class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4 text-[#4a4a4a]">Explorador Interactivo de Fast Prompting</h2>
+                <p class="text-lg max-w-3xl mx-auto text-gray-600">
+                    El "Fast Prompting" es el arte de diseñar prompts efectivos y directos para guiar a un modelo de lenguaje. Esta aplicación demuestra interactivamente varias técnicas clave, transformando la teoría del informe en una experiencia práctica.
+                </p>
+            </section>
+
+            <div class="space-y-16">
+                <!-- Zero-Shot Prompting -->
+                <section id="zero-shot" class="pt-16 -mt-16">
+                    <div class="interactive-card rounded-xl p-8">
+                        <h3 class="text-3xl font-bold mb-3 text-[#4a4a4a]">1. Zero-Shot Prompting (Línea Base)</h3>
+                        <p class="mb-6 text-gray-600">Esta es la forma más simple de prompting. Se le da al modelo una tarea directa sin ningún ejemplo o instrucción adicional. Es rápido, pero su éxito depende de la capacidad inherente del modelo para entender la tarea.</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="zero-shot-input" class="block text-sm font-medium text-gray-700 mb-2">Tu Texto:</label>
+                                <textarea id="zero-shot-input" rows="3" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-[#d1a36a] focus:border-[#d1a36a]">Hello, world.</textarea>
+                                <button id="zero-shot-btn" class="mt-3 w-full bg-[#d1a36a] text-white font-bold py-2 px-4 rounded-md hover:bg-[#c0925a] transition">Generar Respuesta</button>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold mb-2">Prompt Enviado al Modelo:</h4>
+                                <pre id="zero-shot-prompt" class="prompt-display p-4 rounded-md text-sm"></pre>
+                                <h4 class="text-lg font-semibold mt-4 mb-2">Respuesta Simulada:</h4>
+                                <pre id="zero-shot-response" class="response-display p-4 rounded-md text-sm"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Few-Shot Prompting -->
+                <section id="few-shot" class="pt-16 -mt-16">
+                    <div class="interactive-card rounded-xl p-8">
+                        <h3 class="text-3xl font-bold mb-3 text-[#4a4a4a]">2. Few-Shot Prompting</h3>
+                        <p class="mb-6 text-gray-600">Mejoramos el prompt proporcionando un par de ejemplos de entrada y salida. Esto "enseña" al modelo el formato y el estilo deseado, guiándolo hacia una respuesta mucho más precisa y estructurada.</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="few-shot-input" class="block text-sm font-medium text-gray-700 mb-2">Tu Texto:</label>
+                                <textarea id="few-shot-input" rows="3" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-[#d1a36a] focus:border-[#d1a36a]">I am hungry.</textarea>
+                                <button id="few-shot-btn" class="mt-3 w-full bg-[#d1a36a] text-white font-bold py-2 px-4 rounded-md hover:bg-[#c0925a] transition">Generar Respuesta</button>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold mb-2">Prompt Enviado al Modelo:</h4>
+                                <pre id="few-shot-prompt" class="prompt-display p-4 rounded-md text-sm"></pre>
+                                <h4 class="text-lg font-semibold mt-4 mb-2">Respuesta Simulada:</h4>
+                                <pre id="few-shot-response" class="response-display p-4 rounded-md text-sm"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Chain-of-Thought Prompting -->
+                <section id="cot" class="pt-16 -mt-16">
+                    <div class="interactive-card rounded-xl p-8">
+                        <h3 class="text-3xl font-bold mb-3 text-[#4a4a4a]">3. Chain-of-Thought (CoT) Prompting</h3>
+                        <p class="mb-6 text-gray-600">Para problemas complejos que requieren razonamiento, le pedimos al modelo que "piense en voz alta", detallando su proceso paso a paso antes de dar la respuesta final. Esto mejora drásticamente la precisión en tareas lógicas.</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="cot-input" class="block text-sm font-medium text-gray-700 mb-2">Tu Problema:</label>
+                                <textarea id="cot-input" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-[#d1a36a] focus:border-[#d1a36a]">Si una caja contiene 10 lápices, y tres estudiantes toman 2 lápices cada uno, ¿cuántos lápices quedan en la caja?</textarea>
+                                <button id="cot-btn" class="mt-3 w-full bg-[#d1a36a] text-white font-bold py-2 px-4 rounded-md hover:bg-[#c0925a] transition">Generar Respuesta</button>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold mb-2">Prompt Enviado al Modelo:</h4>
+                                <pre id="cot-prompt" class="prompt-display p-4 rounded-md text-sm"></pre>
+                                <h4 class="text-lg font-semibold mt-4 mb-2">Respuesta Simulada:</h4>
+                                <pre id="cot-response" class="response-display p-4 rounded-md text-sm"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Delimiters Prompting -->
+                <section id="delimiters" class="pt-16 -mt-16">
+                    <div class="interactive-card rounded-xl p-8">
+                        <h3 class="text-3xl font-bold mb-3 text-[#4a4a4a]">4. Técnica de Delimitadores</h3>
+                        <p class="mb-6 text-gray-600">Se utilizan caracteres especiales o palabras clave (delimitadores como `###`) para separar claramente las instrucciones del texto a procesar. Esto evita que el modelo confunda el contexto y siga las instrucciones de manera más fiable.</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="delimiters-input" class="block text-sm font-medium text-gray-700 mb-2">Tu Texto:</label>
+                                <textarea id="delimiters-input" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-[#d1a36a] focus:border-[#d1a36a]">Estoy muy emocionado con el nuevo proyecto, pero el plazo es muy ajustado.</textarea>
+                                <button id="delimiters-btn" class="mt-3 w-full bg-[#d1a36a] text-white font-bold py-2 px-4 rounded-md hover:bg-[#c0925a] transition">Generar Respuesta</button>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold mb-2">Prompt Enviado al Modelo:</h4>
+                                <pre id="delimiters-prompt" class="prompt-display p-4 rounded-md text-sm"></pre>
+                                <h4 class="text-lg font-semibold mt-4 mb-2">Respuesta Simulada:</h4>
+                                <pre id="delimiters-response" class="response-display p-4 rounded-md text-sm"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="bg-white mt-16 border-t">
+            <div class="container mx-auto px-6 py-4 text-center text-gray-500 text-sm">
+                <p>&copy; 2025 Fast Prompting POC. Creado a partir de un informe para una demostración interactiva.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            function simulateLLMResponse(technique, input) {
+                switch (technique) {
+                    case 'zero-shot':
+                        if (input.toLowerCase().includes('hello')) return 'Bonjour le monde';
+                        return 'Respuesta genérica traducida.';
+                    case 'few-shot':
+                        if (input.toLowerCase().includes('hungry')) return "J'ai faim.";
+                        if (input.toLowerCase().includes('happy')) return "Je suis heureux.";
+                        return 'Traducción basada en ejemplos.';
+                    case 'cot':
+                        if (input.includes('lápices')) {
+                            return `Proceso de pensamiento:
+1. La caja comienza con 10 lápices.
+2. Tres estudiantes toman 2 lápices cada uno, lo que significa que en total se llevan: 3 * 2 = 6 lápices.
+3. El número de lápices restantes en la caja es: 10 - 6 = 4.
+
+Respuesta: 4`;
+                        }
+                        return `Proceso de pensamiento:
+1. Analizar el problema paso a paso.
+2. Realizar los cálculos necesarios.
+3. Formular la respuesta final.
+
+Respuesta: Resultado del razonamiento.`;
+                    case 'delimiters':
+                        const hasPositive = /emocionado|feliz|genial|bueno/.test(input.toLowerCase());
+                        const hasNegative = /pero|ajustado|difícil|mal/.test(input.toLowerCase());
+                        if (hasPositive && hasNegative) return 'Sentimiento: Neutral (Contiene elementos positivos y negativos).';
+                        if (hasPositive) return 'Sentimiento: Positivo';
+                        if (hasNegative) return 'Sentimiento: Negativo';
+                        return 'Sentimiento: Neutral';
+                }
+            }
+
+            // Zero-Shot
+            const zeroShotInput = document.getElementById('zero-shot-input');
+            const zeroShotBtn = document.getElementById('zero-shot-btn');
+            const zeroShotPrompt = document.getElementById('zero-shot-prompt');
+            const zeroShotResponse = document.getElementById('zero-shot-response');
+
+            function updateZeroShot() {
+                const input = zeroShotInput.value;
+                const prompt = `Traduce '${input}' al francés.`;
+                zeroShotPrompt.textContent = prompt;
+                zeroShotResponse.textContent = simulateLLMResponse('zero-shot', input);
+            }
+            zeroShotBtn.addEventListener('click', updateZeroShot);
+            updateZeroShot();
+
+            // Few-Shot
+            const fewShotInput = document.getElementById('few-shot-input');
+            const fewShotBtn = document.getElementById('few-shot-btn');
+            const fewShotPrompt = document.getElementById('few-shot-prompt');
+            const fewShotResponse = document.getElementById('few-shot-response');
+
+            function updateFewShot() {
+                const input = fewShotInput.value;
+                const prompt = `Traduce la siguiente frase al francés. Aquí hay algunos ejemplos:
+- 'The weather is nice.' -> 'Il fait beau.'
+- 'I am happy.' -> 'Je suis heureux.'
+- '${input}' ->`;
+                fewShotPrompt.textContent = prompt;
+                fewShotResponse.textContent = simulateLLMResponse('few-shot', input);
+            }
+            fewShotBtn.addEventListener('click', updateFewShot);
+            updateFewShot();
+
+            // Chain-of-Thought
+            const cotInput = document.getElementById('cot-input');
+            const cotBtn = document.getElementById('cot-btn');
+            const cotPrompt = document.getElementById('cot-prompt');
+            const cotResponse = document.getElementById('cot-response');
+            
+            function updateCoT() {
+                const input = cotInput.value;
+                const prompt = `La siguiente es una pregunta de razonamiento. Responde explicando tu proceso de pensamiento paso a paso antes de dar la respuesta final.
+Pregunta: Si Juan tiene 5 manzanas, y le da 2 a María, y luego compra 3 más, ¿cuántas manzanas tiene Juan ahora?
+
+Proceso de pensamiento:
+1. Juan comienza con 5 manzanas.
+2. Le da 2 a María, así que el número de manzanas se reduce: 5 - 2 = 3.
+3. Luego, compra 3 más, así que el número de manzanas se incrementa: 3 + 3 = 6.
+4. La respuesta final es 6.
+
+Respuesta: 6
+---
+La siguiente es una pregunta de razonamiento. Responde explicando tu proceso de pensamiento paso a paso antes de dar la respuesta final.
+Pregunta: ${input}`;
+                cotPrompt.textContent = prompt;
+                cotResponse.textContent = simulateLLMResponse('cot', input);
+            }
+            cotBtn.addEventListener('click', updateCoT);
+            updateCoT();
+
+
+            // Delimiters
+            const delimitersInput = document.getElementById('delimiters-input');
+            const delimitersBtn = document.getElementById('delimiters-btn');
+            const delimitersPrompt = document.getElementById('delimiters-prompt');
+            const delimitersResponse = document.getElementById('delimiters-response');
+
+            function updateDelimiters() {
+                 const input = delimitersInput.value;
+                 const prompt = `Instrucciones: Analiza el sentimiento del texto a continuación. Clasifica el sentimiento como 'positivo', 'negativo' o 'neutral'.
+Texto: ###
+${input}
+###`;
+                delimitersPrompt.textContent = prompt;
+                delimitersResponse.textContent = simulateLLMResponse('delimiters', input);
+            }
+            delimitersBtn.addEventListener('click', updateDelimiters);
+            updateDelimiters();
+        });
+    </script>
+</body>
+</html>
